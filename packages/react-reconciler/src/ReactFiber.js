@@ -571,12 +571,17 @@ export function resetWorkInProgress(
 }
 
 export function createHostRootFiber(tag: RootTag): Fiber {
+  // mode 使用二进制表示当前模式
   let mode;
+  // 使用二进制掩码判断模式
+  // 是否在并发模式
   if (tag === ConcurrentRoot) {
     mode = ConcurrentMode | BatchedMode | StrictMode;
+    // 是否在批处理模式
   } else if (tag === BatchedRoot) {
     mode = BatchedMode | StrictMode;
   } else {
+    // 首次非并发 render 的模式为 NoMode
     mode = NoMode;
   }
 

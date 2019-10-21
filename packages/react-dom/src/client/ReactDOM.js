@@ -379,7 +379,9 @@ function createRootImpl(
   const hydrate = options != null && options.hydrate === true;
   const hydrationCallbacks =
     (options != null && options.hydrationOptions) || null;
+  // 使用 createContainer 创建了 fiber
   const root = createContainer(container, tag, hydrate, hydrationCallbacks);
+  // 标记 root
   markContainerAsRoot(root.current, container);
   if (hydrate && tag !== LegacyRoot) {
     const doc =
@@ -396,6 +398,7 @@ function ReactSyncRoot(
   tag: RootTag,
   options: void | RootOptions,
 ) {
+  // 构造的对象只有一个属性 _internalRoot，由 createRootImpl 创建
   this._internalRoot = createRootImpl(container, tag, options);
 }
 
@@ -518,9 +521,11 @@ function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
   forceHydrate: boolean,
 ): _ReactSyncRoot {
+  // 根据 container 是否已经挂载过 react 组件了判断是否开启 hydrate 模式（用于服务端渲染）
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 清空 container 下所有的 DOM 元素
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -556,6 +561,7 @@ function legacyCreateRootFromDOMContainer(
   }
 
   // Legacy roots are not batched.
+  // 使用构造函数创建根组件对应的 fiber 对象
   return new ReactSyncRoot(
     container,
     LegacyRoot,
@@ -566,6 +572,12 @@ function legacyCreateRootFromDOMContainer(
       : undefined,
   );
 }
+
+/**
+ * 在首次 React.render 的过程中，做了两件事：
+ * 1. 创建了表示根元素的 fiber 对象
+ * 2. 使用 fiber 对象创建并执行了更新任务
+ */
 
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
@@ -583,13 +595,16 @@ function legacyRenderSubtreeIntoContainer(
   // member of intersection type." Whyyyyyy.
   let root: _ReactSyncRoot = (container._reactRootContainer: any);
   let fiberRoot;
+  // 首次渲染没有 root
   if (!root) {
     // Initial mount
+    // 通过 legacyCreateRootFromDOMContainer 方法创建根元素的 fiber 对象
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
     );
     fiberRoot = root._internalRoot;
+    // 处理 render 的回调函数参数
     if (typeof callback === 'function') {
       const originalCallback = callback;
       callback = function() {
@@ -598,6 +613,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 使用非批处理上下文执行 updateContainer 方法
     unbatchedUpdates(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
@@ -613,6 +629,7 @@ function legacyRenderSubtreeIntoContainer(
     // Update
     updateContainer(children, fiberRoot, parentComponent, callback);
   }
+  // 最后返回了根组件的 ref
   return getPublicRootInstance(fiberRoot);
 }
 
@@ -688,6 +705,11 @@ const ReactDOM: Object = {
     );
   },
 
+  /**
+   * React 提供的顶层 DOM 渲染 API，用于将 element 渲染到 container 中
+   * 传入的 callback 会在渲染完成后调用
+   **/
+
   render(
     element: React$Element<any>,
     container: DOMContainer,
@@ -706,6 +728,10 @@ const ReactDOM: Object = {
         enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
       );
     }
+    // 直接调用 legacyRenderSubtreeIntoContainer 方法
+    // 传入两个固定的参数
+    // null 表示没有父元素，当前为根元素
+    // false 表示不强制 hydrate (服务端渲染中会用到)
     return legacyRenderSubtreeIntoContainer(
       null,
       element,

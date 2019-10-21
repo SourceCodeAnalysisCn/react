@@ -382,6 +382,7 @@ export function computeUniqueAsyncExpiration(): ExpirationTime {
   return result;
 }
 
+// TODO: 分析 fiber 的更新调度机制
 export function scheduleUpdateOnFiber(
   fiber: Fiber,
   expirationTime: ExpirationTime,
@@ -1233,13 +1234,20 @@ export function discreteUpdates<A, B, C, R>(
 }
 
 export function unbatchedUpdates<A, R>(fn: (a: A) => R, a: A): R {
+  //  暂存之前的上下文
   const prevExecutionContext = executionContext;
+  // 二进制位操作
+  // 在当前上下文中去除批处理上下文
+  // 增加传统非批处理上下文
   executionContext &= ~BatchedContext;
   executionContext |= LegacyUnbatchedContext;
   try {
+    // 实际执行传入的参数
     return fn(a);
   } finally {
+    // 执行完毕后恢复暂存的上下文
     executionContext = prevExecutionContext;
+    // 执行完毕后调用回调
     if (executionContext === NoContext) {
       // Flush the immediate callbacks that were scheduled during this batch
       flushSyncCallbackQueue();

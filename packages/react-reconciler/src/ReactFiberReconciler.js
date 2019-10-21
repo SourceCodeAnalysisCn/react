@@ -156,6 +156,7 @@ function scheduleRootUpdate(
     }
   }
 
+  // 创建表示 update 的数据结构
   const update = createUpdate(expirationTime, suspenseConfig);
   // Caution: React DevTools currently depends on this property
   // being called "element".
@@ -171,12 +172,17 @@ function scheduleRootUpdate(
     );
     update.callback = callback;
   }
-
+  // 将 update 放到 fiber 的更新队列中
   enqueueUpdate(current, update);
+  // 执行 update 队列中的更新
   scheduleWork(current, expirationTime);
 
   return expirationTime;
 }
+
+/**
+ * 在指定过期时间内更新 container
+ */
 
 export function updateContainerAtExpirationTime(
   element: ReactNodeList,
@@ -201,13 +207,14 @@ export function updateContainerAtExpirationTime(
     }
   }
 
+  // TODO: 后面分析 context 实现原理
   const context = getContextForSubtree(parentComponent);
   if (container.context === null) {
     container.context = context;
   } else {
     container.pendingContext = context;
   }
-
+  // scheduleRootUpdate 实际进行了更新
   return scheduleRootUpdate(
     current,
     element,
@@ -305,6 +312,11 @@ export function createContainer(
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
 
+/**
+ * 这个函数对 container 进行了 diff
+ * 并将 container 渲染到 DOM
+ */
+
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -312,6 +324,7 @@ export function updateContainer(
   callback: ?Function,
 ): ExpirationTime {
   const current = container.current;
+  // 获取当前时间，使用毫秒表示
   const currentTime = requestCurrentTime();
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
@@ -320,12 +333,16 @@ export function updateContainer(
       warnIfNotScopedWithMatchingAct(current);
     }
   }
+  // 获取 suspense 配置，首次渲染时为 null，表示同步渲染
   const suspenseConfig = requestCurrentSuspenseConfig();
+  // 使用前面获取的当前时间和 suspense 配置计算本次 fiber 的过期时间
+  // 首次渲染过期时间为 32位最大整数，表示一直执行到完成为止
   const expirationTime = computeExpirationForFiber(
     currentTime,
     current,
     suspenseConfig,
   );
+  // 使用构造的参数调用 updateContainerAtExpirationTime 继续进行 update
   return updateContainerAtExpirationTime(
     element,
     container,
@@ -352,6 +369,7 @@ export {
   IsThisRendererActing,
 };
 
+// 获取根组件的 ref
 export function getPublicRootInstance(
   container: OpaqueRoot,
 ): React$Component<any, any> | PublicInstance | null {
