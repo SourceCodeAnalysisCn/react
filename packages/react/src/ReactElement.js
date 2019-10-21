@@ -89,6 +89,10 @@ function defineRefPropWarningGetter(props, displayName) {
 }
 
 /**
+ * 看起来像是构造函数，其实是工厂函数
+ * 所以不能用 new 调用
+ * 也不能使用 instanceOf
+ * 要使用 $$typeof 来判断是否是 React 组件
  * Factory method to create a new React element. This no longer adheres to
  * the class pattern, so do not use new to call it. Also, no instanceof check
  * will work. Instead test $$typeof field against Symbol.for('react.element') to check
@@ -120,6 +124,7 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
     props: props,
 
     // Record the component responsible for creating this element.
+    // owner 用于记录负责创建这个元素的组件
     _owner: owner,
   };
 
@@ -306,6 +311,7 @@ export function jsxDEV(type, config, maybeKey, source, self) {
 }
 
 /**
+ * 创建并返回了一个 ReactElement 对象
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
  */
@@ -320,6 +326,7 @@ export function createElement(type, config, children) {
   let self = null;
   let source = null;
 
+  // 从 config 取出 props
   if (config != null) {
     if (hasValidRef(config)) {
       ref = config.ref;
@@ -328,11 +335,14 @@ export function createElement(type, config, children) {
       key = '' + config.key;
     }
 
+    // TODO: self 是什么？
     self = config.__self === undefined ? null : config.__self;
+    // source 是 babel 传入的“来源信息”，比如在哪个文件、哪一行等信息
     source = config.__source === undefined ? null : config.__source;
     // Remaining properties are added to a new props object
     for (propName in config) {
       if (
+        // 拷贝过程中过滤掉了保留的 props
         hasOwnProperty.call(config, propName) &&
         !RESERVED_PROPS.hasOwnProperty(propName)
       ) {
@@ -343,6 +353,7 @@ export function createElement(type, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
+  // 第二个参数之后全是 children，把它变成数组
   const childrenLength = arguments.length - 2;
   if (childrenLength === 1) {
     props.children = children;
@@ -359,6 +370,7 @@ export function createElement(type, config, children) {
     props.children = childArray;
   }
 
+  // props 的默认值在这里被处理
   // Resolve default props
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
@@ -382,13 +394,14 @@ export function createElement(type, config, children) {
       }
     }
   }
+  // 使用工厂函数返回了表示当前组件或元素的 ReactElement 对象
   return ReactElement(
     type,
     key,
     ref,
     self,
     source,
-    ReactCurrentOwner.current,
+    ReactCurrentOwner.current, // TODO: owner 是什么？
     props,
   );
 }

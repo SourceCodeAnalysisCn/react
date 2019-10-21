@@ -94,7 +94,7 @@ const React = {
   StrictMode: REACT_STRICT_MODE_TYPE,
   Suspense: REACT_SUSPENSE_TYPE,
   unstable_SuspenseList: REACT_SUSPENSE_LIST_TYPE,
-
+  // JSX 被 babel 翻译后实际调用的这个方法，最终创建了表示组件和元素的对象
   createElement: __DEV__ ? createElementWithValidation : createElement,
   cloneElement: __DEV__ ? cloneElementWithValidation : cloneElement,
   createFactory: __DEV__ ? createFactoryWithValidation : createFactory,
