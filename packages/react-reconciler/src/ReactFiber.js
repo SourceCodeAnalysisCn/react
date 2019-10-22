@@ -361,6 +361,10 @@ const createFiber = function(
   return new FiberNode(tag, pendingProps, key, mode);
 };
 
+// React通过prototype.isReactComponent标志位判断是Class Component或Function Component
+
+// 如果是Class Component，调用方式为：`const classComponent = new ClassComponent(); classComponent.render();`
+// 如果是Function Component，调用方式为：`const functionalComponent = FunctionalComponent();`
 function shouldConstruct(Component: Function) {
   const prototype = Component.prototype;
   return !!(prototype && prototype.isReactComponent);

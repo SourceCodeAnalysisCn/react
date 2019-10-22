@@ -202,6 +202,7 @@ type _ReactRoot = _ReactSyncRoot & {
   createBatch(): Batch,
 };
 
+// 构造函数
 function ReactBatch(root: _ReactRoot | _ReactSyncRoot) {
   const expirationTime = computeUniqueAsyncExpiration();
   this._expirationTime = expirationTime;
@@ -330,6 +331,7 @@ type Work = {
   _didCommit: boolean,
 };
 
+// 构造函数
 function ReactWork() {
   this._callbacks = null;
   this._didCommit = false;
@@ -370,7 +372,8 @@ ReactWork.prototype._onCommit = function(): void {
   }
 };
 
-function createRootImpl(
+// 构造函数
+function ReactSyncRoot(
   container: DOMContainer,
   tag: RootTag,
   options: void | RootOptions,
@@ -816,9 +819,9 @@ const ReactDOM: Object = {
             'was rendered by React and is not a top-level container. %s',
           isContainerReactRoot
             ? 'You may have accidentally passed in a React root node instead ' +
-              'of its container.'
+                'of its container.'
             : 'Instead, have the parent component update its state and ' +
-              'rerender in order to remove this component.',
+                'rerender in order to remove this component.',
         );
       }
 

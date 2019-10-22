@@ -27,7 +27,7 @@ function Component(props, context, updater) {
   // renderer.
   this.updater = updater || ReactNoopUpdateQueue;
 }
-
+// 判断是不是Component的标志位
 Component.prototype.isReactComponent = {};
 
 /**
@@ -122,7 +122,9 @@ if (__DEV__) {
   }
 }
 
+// dummy构造函数
 function ComponentDummy() {}
+// 使dummy构造函数的原型指向Component的原型
 ComponentDummy.prototype = Component.prototype;
 
 /**
@@ -136,10 +138,12 @@ function PureComponent(props, context, updater) {
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
+// 下面代码的意图：使PureComponent是Component的子类，使PureComponent能够访问到setState等方法
 const pureComponentPrototype = (PureComponent.prototype = new ComponentDummy());
 pureComponentPrototype.constructor = PureComponent;
 // Avoid an extra prototype jump for these methods.
 Object.assign(pureComponentPrototype, Component.prototype);
+// pureComponent的标志位
 pureComponentPrototype.isPureReactComponent = true;
 
 export {Component, PureComponent};

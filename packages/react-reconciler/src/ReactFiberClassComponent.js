@@ -283,6 +283,8 @@ function checkShouldComponentUpdate(
     return shouldUpdate;
   }
 
+  // 这段函数就是Component和PureComponent的区别点：
+  // 如果是PureComponent，将通过浅对比props和state，决定是否实现shouldComponentUpdate方法
   if (ctor.prototype && ctor.prototype.isPureReactComponent) {
     return (
       !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState)
