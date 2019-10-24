@@ -134,19 +134,30 @@ export type Fiber = {|
   // minimize the number of objects created during the initial render.
 
   // Tag identifying the type of fiber.
+  // 用来标记当前的fiber是什么类型的
   tag: WorkTag,
 
   // Unique identifier of this child.
+  // 用来标记每个fiber的id，在数组diff的时候很有用，这也是list数据render的时候必须提供的一个属性
   key: null | string,
 
   // The value of element.type which is used to preserve the identity during
   // reconciliation of this child.
+  // 这个fiber实际对应的dom是什么类型的，是div 还是span 还是。。。
   elementType: any,
 
   // The resolved function/class/ associated with this fiber.
+  // 当前组件是function组件 还是class组件 还是原生组件【又叫宿主组件】
   type: any,
 
   // The local state associated with this fiber.
+  /**
+   * ⚛️ 节点的状态
+   */
+  // 节点实例(状态)：
+  //        对于宿主组件，这里保存宿主组件的实例, 例如DOM节点。
+  //        对于类组件来说，这里保存类组件的实例
+  //        对于函数组件说，这里为空，因为函数组件没有实例
   stateNode: any,
 
   // Conceptual aliases
@@ -159,9 +170,11 @@ export type Fiber = {|
   // This is effectively the parent, but there can be multiple parents (two)
   // so this is only the parent of the thing we're currently processing.
   // It is conceptually the same as the return address of a stack frame.
+  // 指向对应的父节点，可以类比计算机的栈来理解
   return: Fiber | null,
 
   // Singly Linked List Tree Structure.
+  // 构造链表结构使用的几个属性，子节点，兄弟节点，index
   child: Fiber | null,
   sibling: Fiber | null,
   index: number,
@@ -171,16 +184,21 @@ export type Fiber = {|
   ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,
 
   // Input is the data coming into process this fiber. Arguments. Props.
+  // 当前传入的待处理的props
   pendingProps: any, // This type will be more specific once we overload the tag.
+  // 上一次渲染的props
   memoizedProps: any, // The props used to create the output.
 
   // A queue of state updates and callbacks.
+  // state更新和callbacks队列
   updateQueue: UpdateQueue<any> | null,
 
   // The state used to create the output
+  // 上一次渲染的状态
   memoizedState: any,
 
   // Dependencies (contexts, events) for this fiber, if it has any
+  // 一些依赖(contexts, events) 如果有的话
   dependencies: Dependencies | null,
 
   // Bitfield that describes properties about the fiber and its subtree. E.g.
@@ -192,27 +210,33 @@ export type Fiber = {|
   mode: TypeOfMode,
 
   // Effect
+  // 当前节点的副作用类型，在diff过程中被设置，比如更新，删除，新增等等
   effectTag: SideEffectTag,
 
   // Singly linked list fast path to the next fiber with side-effects.
+  // effect 也是一个链表，这个用来保存指向下一个副作用的指针
   nextEffect: Fiber | null,
 
   // The first and last fiber with side-effect within this subtree. This allows
   // us to reuse a slice of the linked list when we reuse the work done within
   // this fiber.
+  // 第一个和最后一个副作用，为了便于重复使用链表中的一部分副作用
   firstEffect: Fiber | null,
   lastEffect: Fiber | null,
 
   // Represents a time in the future by which this work should be completed.
   // Does not include work found in its subtree.
+  // 完成一次更新需要的时间，这个时间是通过一个相对比较复杂的公式计算出来的，这个时间在计算的时候会将相近的几次更新放到一起去计算所需要的时间，batchUpdate
   expirationTime: ExpirationTime,
 
   // This is used to quickly determine if a subtree has no pending changes.
+  // 上面算出来的时间不会针对子节点，但是子节点的更新会影响父节点的这个字段，当最终计算出来这个值为0的时候，代表子节点不需要更新，可以直接跳过
   childExpirationTime: ExpirationTime,
 
   // This is a pooled version of a Fiber. Every fiber that gets updated will
   // eventually have a pair. There are cases when we can clean up pairs to save
   // memory if we need to.
+  // 替身，指向旧树中对应的节点，因为几乎每个时刻react都会保留一对树，新旧树，当更新成功后会互换地址，新变wip，wip变新，这样的好处在于省去了频繁创建对应和回收对象的操作
   alternate: Fiber | null,
 
   // Time spent rendering this Fiber and its descendants for the current update.
